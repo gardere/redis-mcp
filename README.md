@@ -17,8 +17,8 @@ npm install redis-mcp
 {
   "mcpServers": {
     "redis": {
-      "command": "node",
-      "args": ["node_modules/redis-mcp/dist/redis_server.js"],
+      "command": "npx",
+      "args": ["redis-mcp"],
       "disabled": false
     }
   }
@@ -132,10 +132,19 @@ Scan Redis keys matching a pattern
 
 ## Configuration
 
-The server connects to Redis at `redis://localhost:6379` by default. To customize:
+The server connects to Redis at `redis://localhost:6379` by default. To customize the connection:
 
-1. Set `REDIS_URL` environment variable
-2. Or modify the `createClient` call in `src/redis_server.ts`
+### Command Line Arguments
+
+Optional arguments to customize the Redis connection:
+
+- `--redis-host <host>`: Redis server host (default: localhost)
+- `--redis-port <port>`: Redis server port (default: 6379, must be between 1-65535)
+
+Example:
+```bash
+node src/redis_server.js --redis-host 192.168.1.100 --redis-port 6380
+```
 
 ## License
 
