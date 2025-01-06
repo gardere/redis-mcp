@@ -14,7 +14,10 @@ src/
 │   ├── hmset_tool.ts      # HMSET Redis operation
 │   ├── hget_tool.ts       # HGET Redis operation
 │   ├── hgetall_tool.ts    # HGETALL Redis operation
-│   └── scan_tool.ts       # SCAN Redis operation
+│   ├── scan_tool.ts       # SCAN Redis operation
+│   ├── set_tool.ts        # SET Redis operation
+│   ├── get_tool.ts        # GET Redis operation
+│   └── del_tool.ts        # DEL Redis operation
 └── redis_server.ts        # Main server implementation
 ```
 
@@ -26,6 +29,9 @@ src/
 | hget | Hash Command | Get the value of a hash field | `key`: string (Hash key)<br>`field`: string (Field to get) |
 | hgetall | Hash Command | Get all fields and values in a hash | `key`: string (Hash key) |
 | scan | Key Command | Scan Redis keys matching a pattern | `pattern`: string (Pattern to match, e.g., "user:*")<br>`count`: number, optional (Number of keys to return) |
+| set | String Command | Set string value with optional NX and PX options | `key`: string (Key to set)<br>`value`: string (Value to set)<br>`nx`: boolean, optional (Only set if not exists)<br>`px`: number, optional (Expiry in milliseconds) |
+| get | String Command | Get string value | `key`: string (Key to get) |
+| del | Key Command | Delete a key | `key`: string (Key to delete) |
 
 ## Usage
 
@@ -78,6 +84,7 @@ export class MyTool extends RedisTool {
     // Implement tool logic
   }
 }
+```
 
 ## License
 

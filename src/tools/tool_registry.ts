@@ -3,6 +3,9 @@ import { HMSetTool } from './hmset_tool.js';
 import { HGetTool } from './hget_tool.js';
 import { HGetAllTool } from './hgetall_tool.js';
 import { ScanTool } from './scan_tool.js';
+import { SetTool } from './set_tool.js';
+import { GetTool } from './get_tool.js';
+import { DelTool } from './del_tool.js';
 
 export class ToolRegistry {
   private tools: Map<string, BaseTool>;
@@ -18,6 +21,9 @@ export class ToolRegistry {
       new HGetTool(),
       new HGetAllTool(),
       new ScanTool(),
+      new SetTool(),
+      new GetTool(),
+      new DelTool(),
     ];
 
     for (const tool of defaultTools) {
