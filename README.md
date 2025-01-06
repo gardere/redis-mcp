@@ -23,111 +23,22 @@ npm install redis-mcp
     }
   }
 }
+```
 
 Note: The --redis-host and --redis-port arguments are optional. If omitted, the server will use default values of localhost and 6379 respectively.
 
 ## Available MCP Tools
 
-### hmset
-Set multiple hash fields to multiple values
-
-**Input Schema:**
-```json
-{
-  "key": "string",
-  "fields": {
-    "field1": "value1",
-    "field2": "value2"
-  }
-}
-```
-
-**Example:**
-```json
-{
-  "key": "user:123",
-  "fields": {
-    "name": "John",
-    "email": "john@example.com"
-  }
-}
-```
-
-### hget
-Get the value of a hash field
-
-**Input Schema:**
-```json
-{
-  "key": "string",
-  "field": "string"
-}
-```
-
-**Example:**
-```json
-{
-  "key": "user:123",
-  "field": "name"
-}
-```
-
-### hgetall
-Get all the fields and values in a hash
-
-**Input Schema:**
-```json
-{
-  "key": "string"
-}
-```
-
-**Example:**
-```json
-{
-  "key": "user:123"
-}
-```
-
-### hset
-Set the value of a hash field
-
-**Input Schema:**
-```json
-{
-  "key": "string",
-  "field": "string",
-  "value": "string"
-}
-```
-
-**Example:**
-```json
-{
-  "key": "user:123",
-  "field": "age",
-  "value": "30"
-}
-```
-
-### scan
-Scan Redis keys matching a pattern
-
-**Input Schema:**
-```json
-{
-  "pattern": "string",
-  "count": "number" // optional
-}
-```
-
-**Example:**
-```json
-{
-  "pattern": "user:*",
-  "count": 100
-}
-```
+|Tool|Type|Description|Input Schema|
+|------|------|-------------|--------------|
+|hmset|Hash Command|Set multiple hash fields to multiple values|`{ "key": "string", "fields": { [field: string]: string } }`|
+|hget|Hash Command|Get the value of a hash field|`{ "key": "string", "field": "string" }`|
+|hgetall|Hash Command|Get all the fields and values in a hash|`{ "key": "string" }`|
+|hset|Hash Command|Set the value of a hash field|`{ "key": "string", "field": "string", "value": "string" }`|
+|scan|String Command|Scan Redis keys matching a pattern|`{ "pattern": "string", "count": "number" (optional) }`|
+|set|String Command|Set the string value of a key|`{ "key": "string", "value": "string", "nx": "boolean" (optional), "px": "number" (optional) }`|
+|get|String Command|Get the value of a key|`{ "key": "string" }`|
+|del|String Command|Delete a key|`{ "key": "string" }`|
 
 ## Configuration
 
