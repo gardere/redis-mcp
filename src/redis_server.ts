@@ -285,7 +285,7 @@ constructor() {
     try {
       const transport = new StdioServerTransport();
       await this.server.connect(transport);
-      console.error('Redis MCP server running on stdio');
+      console.info(`Redis MCP server is running and connected to Redis using url redis://${redisHost}:${redisPort}`);
     } catch (error) {
       console.error('Error starting server:', error);
       process.exit(1);
