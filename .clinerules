@@ -1,0 +1,14 @@
+This is a Typescript project is named redis-mcp. It is a CLI tool starts nodejs server compatable with the Model Context Protocol (MCP) and provides access to a Redis database.
+
+See @https://modelcontextprotocol.io/introduction and https://modelcontextprotocol.io/docs/concepts/tools for an introduction to Model Context Protocol (MCP).
+
+Clients like Claude Desktop and Cline connect to this MCP server using configuration like:
+{
+  "mcpServers": {
+    "redis": {
+      "command": "node",
+      "args": ["<location of the script>/redis_server.js"],
+      "disabled": false
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "redis-mcp",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "dist/redis_server.js",
+  "bin": {
+    "redis-mcp": "dist/redis_server.js"
+  },
+  "scripts": {
+    "build": "tsc && node -e \"require('fs').chmodSync('dist/redis_server.js', '755')\"",
+    "start": "node dist/redis_server.js",
+    "dev": "NODE_OPTIONS=\"--loader ts-node/esm\" node src/redis_server.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "author": "fahrankaz",
+  "license": "ISC",
+  "description": "Redis MCP server providing tools and resources for interacting with Redis databases through the Model Context Protocol",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/farhankaz/redis-mcp"
+  },
+  "keywords": [
+    "mcp",
+    "redis",
+    "database",
+    "cli"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "redis": "^4.6.12"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
