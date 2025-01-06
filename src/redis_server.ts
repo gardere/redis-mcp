@@ -71,6 +71,30 @@ interface ScanArgs {
   count?: number;
 }
 
+interface ZAddArgs {
+  key: string;
+  members: Array<{score: number; value: string}>;
+}
+
+interface ZRangeArgs {
+  key: string;
+  start: number;
+  stop: number;
+  withScores?: boolean;
+}
+
+interface ZRangeByScoreArgs {
+  key: string;
+  min: number;
+  max: number;
+  withScores?: boolean;
+}
+
+interface ZRemArgs {
+  key: string;
+  members: string[];
+}
+
 class RedisServer {
   private server: Server;
   private redisClient;
@@ -159,6 +183,42 @@ constructor() {
   private validateDelArgs(args: unknown): args is DelArgs {
     return typeof args === 'object' && args !== null &&
       'key' in args && typeof (args as any).key === 'string';
+  }
+
+  private validateZAddArgs(args: unknown): args is ZAddArgs {
+    if (typeof args !== 'object' || args === null ||
+        !('key' in args) || typeof (args as any).key !== 'string' ||
+        !('members' in args) || !Array.isArray((args as any).members)) {
+      return false;
+    }
+    return (args as any).members.every((member: any) =>
+      typeof member === 'object' && member !== null &&
+      'score' in member && typeof member.score === 'number' &&
+      'value' in member && typeof member.value === 'string'
+    );
+  }
+
+  private validateZRangeArgs(args: unknown): args is ZRangeArgs {
+    return typeof args === 'object' && args !== null &&
+      'key' in args && typeof (args as any).key === 'string' &&
+      'start' in args && typeof (args as any).start === 'number' &&
+      'stop' in args && typeof (args as any).stop === 'number' &&
+      (!('withScores' in args) || typeof (args as any).withScores === 'boolean');
+  }
+
+  private validateZRangeByScoreArgs(args: unknown): args is ZRangeByScoreArgs {
+    return typeof args === 'object' && args !== null &&
+      'key' in args && typeof (args as any).key === 'string' &&
+      'min' in args && typeof (args as any).min === 'number' &&
+      'max' in args && typeof (args as any).max === 'number' &&
+      (!('withScores' in args) || typeof (args as any).withScores === 'boolean');
+  }
+
+  private validateZRemArgs(args: unknown): args is ZRemArgs {
+    return typeof args === 'object' && args !== null &&
+      'key' in args && typeof (args as any).key === 'string' &&
+      'members' in args && Array.isArray((args as any).members) &&
+      (args as any).members.every((member: any) => typeof member === 'string');
   }
 
   private setupToolHandlers() {
