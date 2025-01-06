@@ -1,6 +1,6 @@
 {
   "name": "redis-mcp",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "main": "dist/redis_server.js",
   "bin": {
