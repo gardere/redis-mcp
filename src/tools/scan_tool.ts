@@ -40,8 +40,9 @@ export class ScanTool extends RedisTool {
         return this.createSuccessResponse('No keys found matching pattern');
       }
 
-      // If count is specified, limit the number of returned keys
-      const limitedKeys = count ? keys.slice(0, count) : keys;
+      // Limit keys to at most 10, or less if count is specified and smaller
+      const maxKeys = Math.min(count || 10, 10);
+      const limitedKeys = keys.slice(0, maxKeys);
       return this.createSuccessResponse(JSON.stringify(limitedKeys, null, 2));
     } catch (error) {
       return this.createErrorResponse(`Failed to scan keys: ${error}`);
