@@ -9,11 +9,24 @@ let redisHost = 'localhost';
 let redisPort = 6379;
 
 for (let i = 2; i < process.argv.length; i++) {
-  if (process.argv[i] === '--redis-host' && process.argv[i + 1]) {
-    redisHost = process.argv[i + 1];
+  if (process.argv[i] === '--redis-host') {
+    if (!process.argv[i + 1] || process.argv[i + 1].trim() === '') {
+      console.error('Error: --redis-host requires a non-empty value');
+      process.exit(1);
+    }
+    redisHost = process.argv[i + 1].trim();
     i++;
-  } else if (process.argv[i] === '--redis-port' && process.argv[i + 1]) {
-    redisPort = parseInt(process.argv[i + 1], 10);
+  } else if (process.argv[i] === '--redis-port') {
+    if (!process.argv[i + 1]) {
+      console.error('Error: --redis-port requires a numeric value');
+      process.exit(1);
+    }
+    const port = parseInt(process.argv[i + 1], 10);
+    if (isNaN(port) || port < 1 || port > 65535) {
+      console.error('Error: --redis-port must be a valid port number between 1 and 65535');
+      process.exit(1);
+    }
+    redisPort = port;
     i++;
   }
 }
