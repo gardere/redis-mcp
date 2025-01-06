@@ -18,14 +18,13 @@ npm install redis-mcp
   "mcpServers": {
     "redis": {
       "command": "npx",
-      "args": ["redis-mcp"],
+      "args": ["redis-mcp", "--redis-host", "localhost", "--redis-port", "6379"],
       "disabled": false
     }
   }
 }
-```
 
-3. Start your MCP client
+Note: The --redis-host and --redis-port arguments are optional. If omitted, the server will use default values of localhost and 6379 respectively.
 
 ## Available MCP Tools
 
