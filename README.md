@@ -40,6 +40,8 @@ src/
 | zrange | Sorted Set Command | Return a range of members from a sorted set by index | `key`: string (Sorted set key)<br>`start`: number (Start index)<br>`stop`: number (Stop index)<br>`withScores`: boolean, optional (Include scores in output) |
 | zrangebyscore | Sorted Set Command | Return members from a sorted set with scores between min and max | `key`: string (Sorted set key)<br>`min`: number (Minimum score)<br>`max`: number (Maximum score)<br>`withScores`: boolean, optional (Include scores in output) |
 | zrem | Sorted Set Command | Remove one or more members from a sorted set | `key`: string (Sorted set key)<br>`members`: array of strings (Members to remove) |
+| sadd | Set Command | Add one or more members to a set | `key`: string (Set key)<br>`members`: array of strings (Members to add to the set) |
+| smembers | Set Command | Get all members in a set | `key`: string (Set key) |
 
 ## Usage
 

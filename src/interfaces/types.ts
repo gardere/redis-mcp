@@ -67,6 +67,15 @@ export interface ZRemArgs {
   members: string[];
 }
 
+export interface SAddArgs {
+  key: string;
+  members: string[];
+}
+
+export interface SMembersArgs {
+  key: string;
+}
+
 // Update ToolResponse to match MCP SDK expectations
 export interface ToolResponse {
   content: Array<{
