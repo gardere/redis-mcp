@@ -17,7 +17,11 @@ src/
 │   ├── scan_tool.ts       # SCAN Redis operation
 │   ├── set_tool.ts        # SET Redis operation
 │   ├── get_tool.ts        # GET Redis operation
-│   └── del_tool.ts        # DEL Redis operation
+│   ├── del_tool.ts        # DEL Redis operation
+│   ├── zadd_tool.ts       # ZADD Redis operation
+│   ├── zrange_tool.ts     # ZRANGE Redis operation
+│   ├── zrangebyscore_tool.ts # ZRANGEBYSCORE Redis operation
+│   └── zrem_tool.ts       # ZREM Redis operation
 └── redis_server.ts        # Main server implementation
 ```
 
@@ -32,6 +36,10 @@ src/
 | set | String Command | Set string value with optional NX and PX options | `key`: string (Key to set)<br>`value`: string (Value to set)<br>`nx`: boolean, optional (Only set if not exists)<br>`px`: number, optional (Expiry in milliseconds) |
 | get | String Command | Get string value | `key`: string (Key to get) |
 | del | Key Command | Delete a key | `key`: string (Key to delete) |
+| zadd | Sorted Set Command | Add one or more members to a sorted set | `key`: string (Sorted set key)<br>`members`: array of objects with `score`: number and `value`: string |
+| zrange | Sorted Set Command | Return a range of members from a sorted set by index | `key`: string (Sorted set key)<br>`start`: number (Start index)<br>`stop`: number (Stop index)<br>`withScores`: boolean, optional (Include scores in output) |
+| zrangebyscore | Sorted Set Command | Return members from a sorted set with scores between min and max | `key`: string (Sorted set key)<br>`min`: number (Minimum score)<br>`max`: number (Maximum score)<br>`withScores`: boolean, optional (Include scores in output) |
+| zrem | Sorted Set Command | Remove one or more members from a sorted set | `key`: string (Sorted set key)<br>`members`: array of strings (Members to remove) |
 
 ## Usage
 

@@ -6,6 +6,10 @@ import { ScanTool } from './scan_tool.js';
 import { SetTool } from './set_tool.js';
 import { GetTool } from './get_tool.js';
 import { DelTool } from './del_tool.js';
+import { ZAddTool } from './zadd_tool.js';
+import { ZRangeTool } from './zrange_tool.js';
+import { ZRangeByScoreTool } from './zrangebyscore_tool.js';
+import { ZRemTool } from './zrem_tool.js';
 
 export class ToolRegistry {
   private tools: Map<string, BaseTool>;
@@ -24,6 +28,10 @@ export class ToolRegistry {
       new SetTool(),
       new GetTool(),
       new DelTool(),
+      new ZAddTool(),
+      new ZRangeTool(),
+      new ZRangeByScoreTool(),
+      new ZRemTool(),
     ];
 
     for (const tool of defaultTools) {
