@@ -51,6 +51,21 @@ interface HSetArgs {
   value: string;
 }
 
+interface SetArgs {
+  key: string;
+  value: string;
+  nx?: boolean;
+  px?: number;
+}
+
+interface GetArgs {
+  key: string;
+}
+
+interface DelArgs {
+  key: string;
+}
+
 interface ScanArgs {
   pattern: string;
   count?: number;
@@ -128,6 +143,24 @@ constructor() {
       (!('count' in args) || typeof (args as any).count === 'number');
   }
 
+  private validateSetArgs(args: unknown): args is SetArgs {
+    return typeof args === 'object' && args !== null &&
+      'key' in args && typeof (args as any).key === 'string' &&
+      'value' in args && typeof (args as any).value === 'string' &&
+      (!('nx' in args) || typeof (args as any).nx === 'boolean') &&
+      (!('px' in args) || typeof (args as any).px === 'number');
+  }
+
+  private validateGetArgs(args: unknown): args is GetArgs {
+    return typeof args === 'object' && args !== null &&
+      'key' in args && typeof (args as any).key === 'string';
+  }
+
+  private validateDelArgs(args: unknown): args is DelArgs {
+    return typeof args === 'object' && args !== null &&
+      'key' in args && typeof (args as any).key === 'string';
+  }
+
   private setupToolHandlers() {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
       tools: [
@@ -189,17 +222,59 @@ constructor() {
           inputSchema: {
             type: 'object',
             properties: {
-              pattern: { 
-                type: 'string', 
-                description: 'Pattern to match (e.g., "user:*" or "schedule:*")' 
+              pattern: {
+                type: 'string',
+                description: 'Pattern to match (e.g., "user:*" or "schedule:*")'
               },
-              count: { 
-                type: 'number', 
+              count: {
+                type: 'number',
                 description: 'Number of keys to return per iteration (optional)',
                 minimum: 1
               }
             },
             required: ['pattern']
+          }
+        },
+        {
+          name: 'set',
+          description: 'Set the string value of a key',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              key: { type: 'string', description: 'Key to set' },
+              value: { type: 'string', description: 'Value to set' },
+              nx: {
+                type: 'boolean',
+                description: 'Only set the key if it does not already exist (optional)'
+              },
+              px: {
+                type: 'number',
+                description: 'Set the specified expire time, in milliseconds (optional)'
+              }
+            },
+            required: ['key', 'value']
+          }
+        },
+        {
+          name: 'get',
+          description: 'Get the value of a key',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              key: { type: 'string', description: 'Key to get' }
+            },
+            required: ['key']
+          }
+        },
+        {
+          name: 'del',
+          description: 'Delete a key',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              key: { type: 'string', description: 'Key to delete' }
+            },
+            required: ['key']
           }
         }
       ]
@@ -265,6 +340,51 @@ constructor() {
             content: [{
               type: 'text',
               text: keys.length > 0 ? JSON.stringify(keys, null, 2) : 'No keys found matching pattern'
+            }]
+          };
+        }
+
+        case 'set': {
+          if (!this.validateSetArgs(request.params.arguments)) {
+            throw new Error('Invalid arguments for set');
+          }
+          const { key, value, nx, px } = request.params.arguments;
+          const setOptions: any = {};
+          
+          if (nx) setOptions.NX = true;
+          if (px) setOptions.PX = px;
+
+          const result = await this.redisClient.set(key, value, setOptions);
+          return {
+            content: [{
+              type: 'text',
+              text: result !== null ? 'Key set successfully' : 'Key not set (NX condition not met)'
+            }]
+          };
+        }
+
+        case 'get': {
+          if (!this.validateGetArgs(request.params.arguments)) {
+            throw new Error('Invalid arguments for get');
+          }
+          const value = await this.redisClient.get(request.params.arguments.key);
+          return {
+            content: [{
+              type: 'text',
+              text: value !== null ? value : 'Key not found'
+            }]
+          };
+        }
+
+        case 'del': {
+          if (!this.validateDelArgs(request.params.arguments)) {
+            throw new Error('Invalid arguments for del');
+          }
+          const result = await this.redisClient.del(request.params.arguments.key);
+          return {
+            content: [{
+              type: 'text',
+              text: result > 0 ? 'Key deleted successfully' : 'Key not found'
             }]
           };
         }
