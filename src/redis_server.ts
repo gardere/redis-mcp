@@ -3,6 +3,8 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { createClient } from 'redis';
+import { ToolRegistry } from './tools/tool_registry.js';
+import { RedisClientType } from './interfaces/types.js';
 
 // Parse command line arguments
 let redisHost = 'localhost';
@@ -31,91 +33,29 @@ for (let i = 2; i < process.argv.length; i++) {
   }
 }
 
-interface HMSetArgs {
-  key: string;
-  fields: Record<string, string>;
-}
-
-interface HGetArgs {
-  key: string;
-  field: string;
-}
-
-interface HGetAllArgs {
-  key: string;
-}
-
-interface HSetArgs {
-  key: string;
-  field: string;
-  value: string;
-}
-
-interface SetArgs {
-  key: string;
-  value: string;
-  nx?: boolean;
-  px?: number;
-}
-
-interface GetArgs {
-  key: string;
-}
-
-interface DelArgs {
-  key: string;
-}
-
-interface ScanArgs {
-  pattern: string;
-  count?: number;
-}
-
-interface ZAddArgs {
-  key: string;
-  members: Array<{score: number; value: string}>;
-}
-
-interface ZRangeArgs {
-  key: string;
-  start: number;
-  stop: number;
-  withScores?: boolean;
-}
-
-interface ZRangeByScoreArgs {
-  key: string;
-  min: number;
-  max: number;
-  withScores?: boolean;
-}
-
-interface ZRemArgs {
-  key: string;
-  members: string[];
-}
-
 class RedisServer {
   private server: Server;
-  private redisClient;
-constructor() {
-  this.server = new Server(
-    {
-      name: "redis-server",
-      version: "1.0.0",
-    },
-    {
-      capabilities: {
-        tools: {},
+  private redisClient: RedisClientType;
+  private toolRegistry: ToolRegistry;
+
+  constructor() {
+    this.server = new Server(
+      {
+        name: "redis-server",
+        version: "1.0.0",
       },
-    }
-  );
+      {
+        capabilities: {
+          tools: {},
+        },
+      }
+    );
 
-  this.redisClient = createClient({
-    url: `redis://${redisHost}:${redisPort}`
-  });
+    this.redisClient = createClient({
+      url: `redis://${redisHost}:${redisPort}`
+    });
 
-
+    this.toolRegistry = new ToolRegistry();
     this.setupToolHandlers();
     
     this.server.onerror = (error) => console.error('[MCP Error]', error);
@@ -137,320 +77,39 @@ constructor() {
     process.on('SIGTERM', cleanup);
   }
 
-  private validateHMSetArgs(args: unknown): args is HMSetArgs {
-    return typeof args === 'object' && args !== null &&
-      'key' in args && typeof (args as any).key === 'string' &&
-      'fields' in args && typeof (args as any).fields === 'object';
-  }
-
-  private validateHGetArgs(args: unknown): args is HGetArgs {
-    return typeof args === 'object' && args !== null &&
-      'key' in args && typeof (args as any).key === 'string' &&
-      'field' in args && typeof (args as any).field === 'string';
-  }
-
-  private validateHGetAllArgs(args: unknown): args is HGetAllArgs {
-    return typeof args === 'object' && args !== null &&
-      'key' in args && typeof (args as any).key === 'string';
-  }
-
-  private validateHSetArgs(args: unknown): args is HSetArgs {
-    return typeof args === 'object' && args !== null &&
-      'key' in args && typeof (args as any).key === 'string' &&
-      'field' in args && typeof (args as any).field === 'string' &&
-      'value' in args && typeof (args as any).value === 'string';
-  }
-
-  private validateScanArgs(args: unknown): args is ScanArgs {
-    return typeof args === 'object' && args !== null &&
-      'pattern' in args && typeof (args as any).pattern === 'string' &&
-      (!('count' in args) || typeof (args as any).count === 'number');
-  }
-
-  private validateSetArgs(args: unknown): args is SetArgs {
-    return typeof args === 'object' && args !== null &&
-      'key' in args && typeof (args as any).key === 'string' &&
-      'value' in args && typeof (args as any).value === 'string' &&
-      (!('nx' in args) || typeof (args as any).nx === 'boolean') &&
-      (!('px' in args) || typeof (args as any).px === 'number');
-  }
-
-  private validateGetArgs(args: unknown): args is GetArgs {
-    return typeof args === 'object' && args !== null &&
-      'key' in args && typeof (args as any).key === 'string';
-  }
-
-  private validateDelArgs(args: unknown): args is DelArgs {
-    return typeof args === 'object' && args !== null &&
-      'key' in args && typeof (args as any).key === 'string';
-  }
-
-  private validateZAddArgs(args: unknown): args is ZAddArgs {
-    if (typeof args !== 'object' || args === null ||
-        !('key' in args) || typeof (args as any).key !== 'string' ||
-        !('members' in args) || !Array.isArray((args as any).members)) {
-      return false;
-    }
-    return (args as any).members.every((member: any) =>
-      typeof member === 'object' && member !== null &&
-      'score' in member && typeof member.score === 'number' &&
-      'value' in member && typeof member.value === 'string'
-    );
-  }
-
-  private validateZRangeArgs(args: unknown): args is ZRangeArgs {
-    return typeof args === 'object' && args !== null &&
-      'key' in args && typeof (args as any).key === 'string' &&
-      'start' in args && typeof (args as any).start === 'number' &&
-      'stop' in args && typeof (args as any).stop === 'number' &&
-      (!('withScores' in args) || typeof (args as any).withScores === 'boolean');
-  }
-
-  private validateZRangeByScoreArgs(args: unknown): args is ZRangeByScoreArgs {
-    return typeof args === 'object' && args !== null &&
-      'key' in args && typeof (args as any).key === 'string' &&
-      'min' in args && typeof (args as any).min === 'number' &&
-      'max' in args && typeof (args as any).max === 'number' &&
-      (!('withScores' in args) || typeof (args as any).withScores === 'boolean');
-  }
-
-  private validateZRemArgs(args: unknown): args is ZRemArgs {
-    return typeof args === 'object' && args !== null &&
-      'key' in args && typeof (args as any).key === 'string' &&
-      'members' in args && Array.isArray((args as any).members) &&
-      (args as any).members.every((member: any) => typeof member === 'string');
-  }
-
   private setupToolHandlers() {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
-      tools: [
-        {
-          name: 'hmset',
-          description: 'Set multiple hash fields to multiple values',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              key: { type: 'string', description: 'Hash key' },
-              fields: { 
-                type: 'object',
-                description: 'Field-value pairs to set',
-                additionalProperties: { type: 'string' }
-              }
-            },
-            required: ['key', 'fields']
-          }
-        },
-        {
-          name: 'hget',
-          description: 'Get the value of a hash field',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              key: { type: 'string', description: 'Hash key' },
-              field: { type: 'string', description: 'Field to get' }
-            },
-            required: ['key', 'field']
-          }
-        },
-        {
-          name: 'hgetall',
-          description: 'Get all the fields and values in a hash',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              key: { type: 'string', description: 'Hash key' }
-            },
-            required: ['key']
-          }
-        },
-        {
-          name: 'hset',
-          description: 'Set the value of a hash field',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              key: { type: 'string', description: 'Hash key' },
-              field: { type: 'string', description: 'Field to set' },
-              value: { type: 'string', description: 'Value to set' }
-            },
-            required: ['key', 'field', 'value']
-          }
-        },
-        {
-          name: 'scan',
-          description: 'Scan Redis keys matching a pattern',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              pattern: {
-                type: 'string',
-                description: 'Pattern to match (e.g., "user:*" or "schedule:*")'
-              },
-              count: {
-                type: 'number',
-                description: 'Number of keys to return per iteration (optional)',
-                minimum: 1
-              }
-            },
-            required: ['pattern']
-          }
-        },
-        {
-          name: 'set',
-          description: 'Set the string value of a key',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              key: { type: 'string', description: 'Key to set' },
-              value: { type: 'string', description: 'Value to set' },
-              nx: {
-                type: 'boolean',
-                description: 'Only set the key if it does not already exist (optional)'
-              },
-              px: {
-                type: 'number',
-                description: 'Set the specified expire time, in milliseconds (optional)'
-              }
-            },
-            required: ['key', 'value']
-          }
-        },
-        {
-          name: 'get',
-          description: 'Get the value of a key',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              key: { type: 'string', description: 'Key to get' }
-            },
-            required: ['key']
-          }
-        },
-        {
-          name: 'del',
-          description: 'Delete a key',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              key: { type: 'string', description: 'Key to delete' }
-            },
-            required: ['key']
-          }
-        }
-      ]
+      tools: this.toolRegistry.getAllTools().map(tool => ({
+        name: tool.name,
+        description: tool.description,
+        inputSchema: tool.inputSchema
+      }))
     }));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       await this.ensureConnected();
 
-      switch (request.params.name) {
-        case 'hmset': {
-          if (!this.validateHMSetArgs(request.params.arguments)) {
-            throw new Error('Invalid arguments for hmset');
-          }
-          await this.redisClient.hSet(request.params.arguments.key, request.params.arguments.fields);
-          return { content: [{ type: 'text', text: 'Hash fields set successfully' }] };
-        }
+      const tool = this.toolRegistry.getTool(request.params.name);
+      if (!tool) {
+        return {
+          content: [{
+            type: 'text',
+            text: `Unknown tool: ${request.params.name}`
+          }],
+          _meta: { error: true }
+        };
+      }
 
-        case 'hget': {
-          if (!this.validateHGetArgs(request.params.arguments)) {
-            throw new Error('Invalid arguments for hget');
-          }
-          const value = await this.redisClient.hGet(request.params.arguments.key, request.params.arguments.field);
-          return { 
-            content: [{ 
-              type: 'text', 
-              text: value !== null ? value : 'Field not found' 
-            }] 
-          };
-        }
-
-        case 'hgetall': {
-          if (!this.validateHGetAllArgs(request.params.arguments)) {
-            throw new Error('Invalid arguments for hgetall');
-          }
-          const value = await this.redisClient.hGetAll(request.params.arguments.key);
-          return { 
-            content: [{ 
-              type: 'text', 
-              text: Object.keys(value).length > 0 ? JSON.stringify(value, null, 2) : 'Hash not found or empty' 
-            }] 
-          };
-        }
-
-        case 'hset': {
-          if (!this.validateHSetArgs(request.params.arguments)) {
-            throw new Error('Invalid arguments for hset');
-          }
-          await this.redisClient.hSet(
-            request.params.arguments.key,
-            request.params.arguments.field,
-            request.params.arguments.value
-          );
-          return { content: [{ type: 'text', text: 'Hash field set successfully' }] };
-        }
-
-        case 'scan': {
-          if (!this.validateScanArgs(request.params.arguments)) {
-            throw new Error('Invalid arguments for scan');
-          }
-          const { pattern, count = 100 } = request.params.arguments;
-          const keys = await this.redisClient.keys(pattern);
-          return {
-            content: [{
-              type: 'text',
-              text: keys.length > 0 ? JSON.stringify(keys, null, 2) : 'No keys found matching pattern'
-            }]
-          };
-        }
-
-        case 'set': {
-          if (!this.validateSetArgs(request.params.arguments)) {
-            throw new Error('Invalid arguments for set');
-          }
-          const { key, value, nx, px } = request.params.arguments;
-          const setOptions: any = {};
-          
-          if (nx) setOptions.NX = true;
-          if (px) setOptions.PX = px;
-
-          const result = await this.redisClient.set(key, value, setOptions);
-          return {
-            content: [{
-              type: 'text',
-              text: result !== null ? 'Key set successfully' : 'Key not set (NX condition not met)'
-            }]
-          };
-        }
-
-        case 'get': {
-          if (!this.validateGetArgs(request.params.arguments)) {
-            throw new Error('Invalid arguments for get');
-          }
-          const value = await this.redisClient.get(request.params.arguments.key);
-          return {
-            content: [{
-              type: 'text',
-              text: value !== null ? value : 'Key not found'
-            }]
-          };
-        }
-
-        case 'del': {
-          if (!this.validateDelArgs(request.params.arguments)) {
-            throw new Error('Invalid arguments for del');
-          }
-          const result = await this.redisClient.del(request.params.arguments.key);
-          return {
-            content: [{
-              type: 'text',
-              text: result > 0 ? 'Key deleted successfully' : 'Key not found'
-            }]
-          };
-        }
-
-        default:
-          throw new Error(`Unknown tool: ${request.params.name}`);
+      try {
+        return await tool.execute(request.params.arguments, this.redisClient);
+      } catch (error) {
+        return {
+          content: [{
+            type: 'text',
+            text: `Error executing tool: ${error}`
+          }],
+          _meta: { error: true }
+        };
       }
     });
   }

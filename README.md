@@ -1,17 +1,35 @@
-# redis-mcp
+# Redis MCP Server
 
-A Redis Model Context Protocol (MCP) server that provides Redis database operations through MCP tools.
+A Model Context Protocol (MCP) server that provides access to Redis database operations.
 
-## Installation
+## Project Structure
 
-```bash
-npm install redis-mcp
 ```
+src/
+├── interfaces/
+│   └── types.ts           # Shared TypeScript interfaces and types
+├── tools/
+│   ├── base_tool.ts       # Abstract base class for Redis tools
+│   ├── tool_registry.ts   # Registry managing all available Redis tools
+│   ├── hmset_tool.ts      # HMSET Redis operation
+│   ├── hget_tool.ts       # HGET Redis operation
+│   ├── hgetall_tool.ts    # HGETALL Redis operation
+│   └── scan_tool.ts       # SCAN Redis operation
+└── redis_server.ts        # Main server implementation
+```
+
+## Available Tools
+
+| Tool | Type | Description | Input Schema |
+|------|------|-------------|--------------|
+| hmset | Hash Command | Set multiple hash fields to multiple values | `key`: string (Hash key)<br>`fields`: object (Field-value pairs to set) |
+| hget | Hash Command | Get the value of a hash field | `key`: string (Hash key)<br>`field`: string (Field to get) |
+| hgetall | Hash Command | Get all fields and values in a hash | `key`: string (Hash key) |
+| scan | Key Command | Scan Redis keys matching a pattern | `pattern`: string (Pattern to match, e.g., "user:*")<br>`count`: number, optional (Number of keys to return) |
 
 ## Usage
 
-1. Install the package
-2. Configure your MCP client (e.g., Claude Desktop) with the following settings:
+Configure in your MCP client (e.g., Claude Desktop, Cline):
 
 ```json
 {
@@ -25,36 +43,41 @@ npm install redis-mcp
 }
 ```
 
-Note: The --redis-host and --redis-port arguments are optional. If omitted, the server will use default values of localhost and 6379 respectively.
+## Command Line Arguments
 
-## Available MCP Tools
+- `--redis-host`: Redis server host (default: localhost)
+- `--redis-port`: Redis server port (default: 6379)
 
-|Tool|Type|Description|Input Schema|
-|------|------|-------------|--------------|
-|hmset|Hash Command|Set multiple hash fields to multiple values|`{ "key": "string", "fields": { [field: string]: string } }`|
-|hget|Hash Command|Get the value of a hash field|`{ "key": "string", "field": "string" }`|
-|hgetall|Hash Command|Get all the fields and values in a hash|`{ "key": "string" }`|
-|hset|Hash Command|Set the value of a hash field|`{ "key": "string", "field": "string", "value": "string" }`|
-|scan|String Command|Scan Redis keys matching a pattern|`{ "pattern": "string", "count": "number" (optional) }`|
-|set|String Command|Set the string value of a key|`{ "key": "string", "value": "string", "nx": "boolean" (optional), "px": "number" (optional) }`|
-|get|String Command|Get the value of a key|`{ "key": "string" }`|
-|del|String Command|Delete a key|`{ "key": "string" }`|
+## Development
 
-## Configuration
+To add a new Redis tool:
 
-The server connects to Redis at `redis://localhost:6379` by default. To customize the connection:
+1. Create a new tool class in `src/tools/` extending `RedisTool`
+2. Define the tool's interface in `src/interfaces/types.ts`
+3. Register the tool in `src/tools/tool_registry.ts`
 
-### Command Line Arguments
+Example tool implementation:
 
-Optional arguments to customize the Redis connection:
+```typescript
+export class MyTool extends RedisTool {
+  name = 'mytool';
+  description = 'Description of what the tool does';
+  inputSchema = {
+    type: 'object',
+    properties: {
+      // Define input parameters
+    },
+    required: ['requiredParam']
+  };
 
-- `--redis-host <host>`: Redis server host (default: localhost)
-- `--redis-port <port>`: Redis server port (default: 6379, must be between 1-65535)
+  validateArgs(args: unknown): args is MyToolArgs {
+    // Implement argument validation
+  }
 
-Example:
-```bash
-node src/redis_server.js --redis-host 192.168.1.100 --redis-port 6380
-```
+  async execute(args: unknown, client: RedisClientType): Promise<ToolResponse> {
+    // Implement tool logic
+  }
+}
 
 ## License
 
