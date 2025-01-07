@@ -2,6 +2,8 @@
 
 A Model Context Protocol (MCP) server that provides access to Redis database operations.
 
+<a href="https://glama.ai/mcp/servers/cbn7lsbp7h"><img width="380" height="200" src="https://glama.ai/mcp/servers/cbn7lsbp7h/badge" alt="Redis Server MCP server" /></a>
+
 ## Project Structure
 
 ```
