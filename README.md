@@ -1,4 +1,5 @@
 # Redis MCP Server
+[![smithery badge](https://smithery.ai/badge/redis-mcp)](https://smithery.ai/server/redis-mcp)
 
 A Model Context Protocol (MCP) server that provides access to Redis database operations.
 
@@ -65,6 +66,14 @@ Configure in your MCP client (e.g., Claude Desktop, Cline):
 
 - `--redis-host`: Redis server host (default: localhost)
 - `--redis-port`: Redis server port (default: 6379)
+
+### Installing via Smithery
+
+To install Redis Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/redis-mcp):
+
+```bash
+npx -y @smithery/cli install redis-mcp --client claude
+```
 
 ## Development
 
