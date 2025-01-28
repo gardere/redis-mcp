@@ -1,0 +1,21 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - redisHost
+      - redisPort
+    properties:
+      redisHost:
+        type: string
+        description: The host address of the Redis server.
+      redisPort:
+        type: string
+        description: The port number of the Redis server.
+  commandFunction:
+    # A function that produces the CLI command to start the MCP on stdio.
+    |-
+    (config) => ({ command: 'node', args: ['dist/redis_server.js', '--redis-host', config.redisHost, '--redis-port', config.redisPort] })
