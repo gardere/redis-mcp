@@ -28,6 +28,7 @@
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
+    "mcp-evals": "^1.0.18",
     "redis": "^4.6.12"
   },
   "devDependencies": {
