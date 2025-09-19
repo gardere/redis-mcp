@@ -1,9 +1,8 @@
 # Redis MCP Server
-[![smithery badge](https://smithery.ai/badge/redis-mcp)](https://smithery.ai/server/redis-mcp)
 
 A Model Context Protocol (MCP) server that provides access to Redis database operations.
 
-<a href="https://glama.ai/mcp/servers/cbn7lsbp7h"><img width="380" height="200" src="https://glama.ai/mcp/servers/cbn7lsbp7h/badge" alt="Redis Server MCP server" /></a>
+> **Fork Notice:** This is a fork of the original [redis-mcp](https://github.com/farhankaz/redis-mcp) with additional features including the `keys` command and enhanced `scan` functionality.
 
 ## Project Structure
 
@@ -18,6 +17,7 @@ src/
 │   ├── hget_tool.ts       # HGET Redis operation
 │   ├── hgetall_tool.ts    # HGETALL Redis operation
 │   ├── scan_tool.ts       # SCAN Redis operation
+│   ├── keys_tool.ts       # KEYS Redis operation
 │   ├── set_tool.ts        # SET Redis operation
 │   ├── get_tool.ts        # GET Redis operation
 │   ├── del_tool.ts        # DEL Redis operation
@@ -35,7 +35,8 @@ src/
 | hmset | Hash Command | Set multiple hash fields to multiple values | `key`: string (Hash key)<br>`fields`: object (Field-value pairs to set) |
 | hget | Hash Command | Get the value of a hash field | `key`: string (Hash key)<br>`field`: string (Field to get) |
 | hgetall | Hash Command | Get all fields and values in a hash | `key`: string (Hash key) |
-| scan | Key Command | Scan Redis keys matching a pattern | `pattern`: string (Pattern to match, e.g., "user:*")<br>`count`: number, optional (Number of keys to return) |
+| scan | Key Command | Scan Redis keys matching a pattern | `pattern`: string (Pattern to match, e.g., "user:*")<br>`count`: number, optional (Number of keys to return)<br>`unlimited`: boolean, optional (If true, return all matching keys without 10-key limit) |
+| keys | Key Command | Get all Redis keys matching a pattern | `pattern`: string (Pattern to match, e.g., "user:*" or "*" for all keys) |
 | set | String Command | Set string value with optional NX and PX options | `key`: string (Key to set)<br>`value`: string (Value to set)<br>`nx`: boolean, optional (Only set if not exists)<br>`px`: number, optional (Expiry in milliseconds) |
 | get | String Command | Get string value | `key`: string (Key to get) |
 | del | Key Command | Delete a key | `key`: string (Key to delete) |
@@ -48,32 +49,26 @@ src/
 
 ## Usage
 
-Configure in your MCP client (e.g., Claude Desktop, Cline):
+Configure in your MCP client (e.g., Claude Desktop, Cursor, Cline):
 
 ```json
 {
   "mcpServers": {
     "redis": {
       "command": "npx",
-      "args": ["redis-mcp", "--redis-host", "localhost", "--redis-port", "6379"],
+      "args": ["@https://github.com/gardere/redis-mcp", "--redis-host", "localhost", "--redis-port", "6379"],
       "disabled": false
     }
   }
 }
 ```
 
+> **Note:** This is a fork that's not published on npm, so you need to install directly from GitHub using the `@https://github.com/gardere/redis-mcp` syntax.
+
 ## Command Line Arguments
 
 - `--redis-host`: Redis server host (default: localhost)
 - `--redis-port`: Redis server port (default: 6379)
-
-### Installing via Smithery
-
-To install Redis Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/redis-mcp):
-
-```bash
-npx -y @smithery/cli install redis-mcp --client claude
-```
 
 ## Development
 
@@ -116,6 +111,15 @@ The evals package loads an mcp client that then runs the index.ts file, so there
 ```bash
 OPENAI_API_KEY=your-key  npx mcp-eval src/evals/evals.ts src/tools/zrangebyscore_tool.ts
 ```
+
+## What's New in This Fork
+
+This fork adds the following enhancements over the original redis-mcp:
+
+- **🆕 KEYS Command**: New `keys` tool that retrieves all Redis keys matching a pattern (similar to Redis KEYS command)
+- **🔧 Enhanced SCAN Command**: Added `unlimited` parameter to optionally disable the 10-key limit and return all matching keys
+- **✅ Comprehensive Tests**: Full test coverage for both new features
+
 ## License
 
 MIT: https://opensource.org/license/mit
