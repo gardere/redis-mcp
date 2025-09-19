@@ -16,6 +16,10 @@ export class ScanTool extends RedisTool {
         type: 'number',
         description: 'Number of keys to return per iteration (optional)',
         minimum: 1
+      },
+      unlimited: {
+        type: 'boolean',
+        description: 'If true, return all matching keys without the default 10-key limit (optional)'
       }
     },
     required: ['pattern']
@@ -24,7 +28,8 @@ export class ScanTool extends RedisTool {
   validateArgs(args: unknown): args is ScanArgs {
     return typeof args === 'object' && args !== null &&
       'pattern' in args && typeof (args as any).pattern === 'string' &&
-      (!('count' in args) || typeof (args as any).count === 'number');
+      (!('count' in args) || typeof (args as any).count === 'number') &&
+      (!('unlimited' in args) || typeof (args as any).unlimited === 'boolean');
   }
 
   async execute(args: unknown, client: RedisClientType): Promise<ToolResponse> {
@@ -33,17 +38,21 @@ export class ScanTool extends RedisTool {
     }
 
     try {
-      const { pattern, count = 100 } = args;
+      const { pattern, count = 100, unlimited = false } = args;
       const keys = await client.keys(pattern);
       
       if (keys.length === 0) {
         return this.createSuccessResponse('No keys found matching pattern');
       }
 
-      // Limit keys to at most 10, or less if count is specified and smaller
-      const maxKeys = Math.min(count || 10, 10);
-      const limitedKeys = keys.slice(0, maxKeys);
-      return this.createSuccessResponse(JSON.stringify(limitedKeys, null, 2));
+      let resultKeys = keys;
+      if (!unlimited) {
+        // Limit keys to at most 10, or less if count is specified and smaller
+        const maxKeys = Math.min(count || 10, 10);
+        resultKeys = keys.slice(0, maxKeys);
+      }
+      
+      return this.createSuccessResponse(JSON.stringify(resultKeys, null, 2));
     } catch (error) {
       return this.createErrorResponse(`Failed to scan keys: ${error}`);
     }

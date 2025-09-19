@@ -22,6 +22,14 @@ describe('ScanTool', () => {
       expect(scanTool.validateArgs({ pattern: 'user:*', count: 5 })).toBe(true);
     });
 
+    it('should return true for valid arguments with unlimited parameter', () => {
+      expect(scanTool.validateArgs({ pattern: 'user:*', unlimited: true })).toBe(true);
+    });
+
+    it('should return true for valid arguments with all parameters', () => {
+      expect(scanTool.validateArgs({ pattern: 'user:*', count: 5, unlimited: false })).toBe(true);
+    });
+
     it('should return false for missing pattern', () => {
       expect(scanTool.validateArgs({})).toBe(false);
     });
@@ -78,6 +86,30 @@ describe('ScanTool', () => {
       mockRedisClient.keys.mockResolvedValue(keys);
       
       const result = await scanTool.execute({ pattern: 'key*', count: 15 }, mockRedisClient);
+      const parsedKeys = JSON.parse(result.content[0].text);
+      
+      expect(result._meta?.error).toBeUndefined();
+      expect(parsedKeys.length).toBe(10);
+      expect(parsedKeys).toEqual(keys.slice(0, 10));
+    });
+
+    it('should return all keys when unlimited is true', async () => {
+      const keys = Array.from({ length: 50 }, (_, i) => `key${i}`);
+      mockRedisClient.keys.mockResolvedValue(keys);
+      
+      const result = await scanTool.execute({ pattern: 'key*', unlimited: true }, mockRedisClient);
+      const parsedKeys = JSON.parse(result.content[0].text);
+      
+      expect(result._meta?.error).toBeUndefined();
+      expect(parsedKeys.length).toBe(50);
+      expect(parsedKeys).toEqual(keys);
+    });
+
+    it('should still limit to 10 keys when unlimited is false', async () => {
+      const keys = Array.from({ length: 20 }, (_, i) => `key${i}`);
+      mockRedisClient.keys.mockResolvedValue(keys);
+      
+      const result = await scanTool.execute({ pattern: 'key*', unlimited: false }, mockRedisClient);
       const parsedKeys = JSON.parse(result.content[0].text);
       
       expect(result._meta?.error).toBeUndefined();

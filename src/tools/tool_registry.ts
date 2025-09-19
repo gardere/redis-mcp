@@ -12,6 +12,7 @@ import { ZRangeByScoreTool } from './zrangebyscore_tool.js';
 import { ZRemTool } from './zrem_tool.js';
 import { SAddTool } from './sadd_tool.js';
 import { SMembersTool } from './smembers_tool.js';
+import { KeysTool } from './keys_tool.js';
 
 export class ToolRegistry {
   private tools: Map<string, BaseTool>;
@@ -27,6 +28,7 @@ export class ToolRegistry {
       new HGetTool(),
       new HGetAllTool(),
       new ScanTool(),
+      new KeysTool(),
       new SetTool(),
       new GetTool(),
       new DelTool(),

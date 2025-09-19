@@ -41,6 +41,11 @@ export interface DelArgs {
 export interface ScanArgs {
   pattern: string;
   count?: number;
+  unlimited?: boolean;
+}
+
+export interface KeysArgs {
+  pattern: string;
 }
 
 export interface ZAddArgs {
